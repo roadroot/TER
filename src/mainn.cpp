@@ -132,6 +132,7 @@ vector<vector<vector<string>>> *compute_completions(ter::IAF *iaf)
 
 int main()
 {
+    cout << "hehe boi " << endl;
     ifstream input;
     input.open("Test20.tgf");
     ter::IAF *iaf = new ter::IAF();
