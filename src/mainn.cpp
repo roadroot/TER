@@ -9,6 +9,7 @@
 #include <math.h>
 #include <map>
 #include <algorithm>
+#define DEBUG_ENABLED true
 
 using namespace std;
 
@@ -94,26 +95,26 @@ vector<bool> encode(long value)
     return *boolvalue;
 }
 
-vector<vector<vector<string>>> *compute_completions(ter::IAF *iaf)
+vector<vector<vector<string>>> *compute_completions(ter::IAF &iaf)
 {
     vector<vector<vector<string>>> *results = new vector<vector<vector<string>>>();
-    long n_poss_arg = pow(2, iaf->get_iargs().size());
-    long n_poss_attacks = pow(2, iaf->get_iattacks().size());
+    long n_poss_arg = pow(2, iaf.get_iargs().size());
+    long n_poss_attacks = pow(2, iaf.get_iattacks().size());
     for (long i = 0; i < n_poss_arg; i++)
     {
-        vector<string> cargs = iaf->get_args();
+        vector<string> cargs = iaf.get_args();
         vector<bool> valid_args = encode(i);
         for (int j = 0; j < valid_args.size(); j++)
             if (valid_args[j])
-                cargs.push_back(iaf->get_iarg(j));
+                cargs.push_back(iaf.get_iarg(j));
 
         for (long l = 0; l < n_poss_attacks; l++)
         {
-            vector<ter::Attack> cattacks = iaf->get_attacks();
+            vector<ter::Attack> cattacks = iaf.get_attacks();
             vector<bool> valid_attacks = encode(l);
             for (int m = 0; m < valid_attacks.size(); m++)
                 if (valid_attacks[m])
-                    cattacks.push_back(iaf->get_iattack(m));
+                    cattacks.push_back(iaf.get_iattack(m));
 
             AF af = AF(cargs, cattacks);
             af.initialize_vars();
@@ -130,18 +131,24 @@ vector<vector<vector<string>>> *compute_completions(ter::IAF *iaf)
     return results;
 }
 
-int main()
+int main(int argc, char* argv[])
 {
-    cout << "hehe boi " << endl;
-    ifstream input;
-    input.open("Test20.tgf");
-    ter::IAF *iaf = new ter::IAF();
-    iaf->parse_from_tfg(input);
+    #if DEBUG_ENABLED
+        ifstream input = ifstream("Test20.tgf");
+    #else
+        if(argc == 0) {
+            cout << "Usage: solver <file>" << endl;
+            return 0;
+        }
+        ifstream input = ifstream(argv[0]);    
+    #endif
+    ter::IAF iaf = ter::IAF();
+    iaf.parse_from_tfg(input);
     //AF af = AF(iaf);
     //af.initialize_vars();
     std::vector<std::vector<std::vector<std::string>>> *compStable = compute_completions(iaf);
     cout << to_string(compStable);
-    sckeptical_acceptance(*iaf, *compStable);
+    sckeptical_acceptance(iaf, *compStable);
     //EnumerateExtensions::stable(af);
 
     return 0;
