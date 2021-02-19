@@ -36,10 +36,9 @@
 
 namespace EnumerateExtensions {
 
-bool complete(const AF & af);
-bool preferred(const AF & af);
-bool stable(const AF & af);
-std::vector<std::vector<std::string>> stable(const AF & af,bool usless);
+std::vector<std::vector<std::string>> *complete(const AF & af);
+std::vector<std::vector<std::string>> *preferred(const AF & af);
+std::vector<std::vector<std::string>> *stable(const AF & af);
 bool semi_stable(const AF & af);
 bool stage(const AF & af);
 

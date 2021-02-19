@@ -46,7 +46,7 @@ namespace ter
         bool attack_abs_exists(string arg1, string arg2);
         bool attack_abs_exists(Attack attack);
 
-        void parse_from_tfg(ifstream &tgf_file);
+        void parse_from_tgf(ifstream &tgf_file);
         void parse_from_apx(ifstream &apx_file);
 
         void print_af();
