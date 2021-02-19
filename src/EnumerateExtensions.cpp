@@ -37,11 +37,11 @@ using namespace std;
 
 namespace EnumerateExtensions {
 
-bool complete(const AF & af)
+vector<vector<std::string>> *complete(const AF & af)
 {
+	vector<vector<std::string>> *results = new vector<vector<std::string>>();
 	SAT_Solver solver = SAT_Solver(af.count, af.args);
 	Encodings::add_complete(af, solver);
-	print_begin(true);
 	while (true) {
 		bool sat = solver.solve();
 		if (!sat) break;
@@ -55,18 +55,17 @@ bool complete(const AF & af)
 				blocking_clause[i] = af.arg_var[i];
 			}
 		}
-		print_single_extension(af, extension, 1);
+		results->push_back(get_single_extension(af,extension,1));
 		solver.add_clause(blocking_clause);
 	}
-	print_end(true);
-	return true;
+	return results;
 }
 
-bool preferred(const AF & af)
+vector<vector<std::string>> *preferred(const AF & af)
 {
+	vector<vector<std::string>> *results = new vector<vector<std::string>>();
 	SAT_Solver solver = SAT_Solver(af.count, af.args);
 	Encodings::add_complete(af, solver);
-	print_begin(true);
 	while (true) {
 		bool sat = solver.solve();
 		if (!sat) break;
@@ -98,53 +97,12 @@ bool preferred(const AF & af)
 				extension.push_back(i);
 			}
 		}
-		print_single_extension(af, extension, 1);
+		results->push_back(get_single_extension(af,extension,1));
 	}
-	print_end(true);
-	return true;
+	return results;
 }
 
-bool stable(const AF & af)
-{
-	SAT_Solver solver = SAT_Solver(af.count, af.args);
-	Encodings::add_stable(af, solver);
-#if defined(GR_IN_ST)
-	vector<int> assumptions = grounded_assumptions(af);
-	for (uint32_t i = 0; i < assumptions.size(); i++) {
-		vector<int> clause = { assumptions[i] };
-		solver.add_clause(clause);
-	}
-#endif
-	bool extension_found = false;
-	int jj=0;
-	while (true) {
-		jj++;
-		bool sat = solver.solve();
-		if (!sat) break;
-		if (!extension_found) {
-			print_begin(true);
-			extension_found = true;
-		}
-		vector<uint32_t> extension;
-		vector<int> blocking_clause(af.args);
-		for (uint32_t i = 0; i < af.args; i++) {
-			if (solver.assignment[af.arg_var[i]-1]) {
-				extension.push_back(i);
-				blocking_clause[i] = -af.arg_var[i];
-			} else{
-				blocking_clause[i] = af.arg_var[i];
-			}
-		}
-		std::cout << "hehe boi " << jj << " :" ;
-		print_single_extension(af, extension, 1);
-		solver.add_clause(blocking_clause);
-	}
-	if (!extension_found) print_begin(false);
-	print_end(true);
-	return extension_found;
-}
-
-vector<vector<std::string>> stable(const AF & af,bool usless)
+vector<vector<std::string>> *stable(const AF & af)
 {
 	vector<vector<std::string>> *results = new vector<vector<std::string>>();
 	SAT_Solver solver = SAT_Solver(af.count, af.args);
@@ -184,7 +142,7 @@ vector<vector<std::string>> stable(const AF & af,bool usless)
 	}
 	//if (!extension_found) print_begin(false);
 	//print_end(true);
-	return *results;
+	return results;
 }
 
 bool semi_stable(const AF & af)

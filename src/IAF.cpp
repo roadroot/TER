@@ -173,8 +173,10 @@ namespace ter
         iattacks_.push_back(attack);
     }
 
-    void IAF::parse_from_tfg(ifstream &tgf_file)
+    void IAF::parse_from_tgf(ifstream &tgf_file)
     {
+        // TODO wrong lines ignored
+        // TODO handle exceptions
         string line;
         while (getline(tgf_file, line) && line.compare("#") != 0)
             if (line[0] == '?')
@@ -184,13 +186,30 @@ namespace ter
 
         while (getline(tgf_file, line))
             if (line[0] == '?')
-                add_iattack(*(new Attack(line.substr(1))));
+                iattacks_.push_back(Attack(line.substr(1)));
             else
-                add_attack(*(new Attack(line)));
+                attacks_.push_back(Attack(line));
     }
 
     void IAF::parse_from_apx(ifstream &apx_file)
     {
+        // TODO wrong lines ignored
+        // TODO handle exceptions
+        string line;
+        while (getline(apx_file, line))
+        {
+            if (line[0] == '?')
+            {
+                if (line.substr(1, 4) == "arg(")
+                    iargs_.push_back(line.substr(5, line.find(')') - 5));
+                else if (line.substr(1, 4) == "att(")
+                    iattacks_.push_back(Attack(line.substr(5)));
+            }
+            else if (line.substr(0, 4) == "arg(")
+                args_.push_back(line.substr(4, line.find(')') - 4));
+            else if (line.substr(0, 4) == "att(")
+                attacks_.push_back(Attack(line.substr(4)));
+        }
     }
 
     void IAF::write_tgf(string name)
