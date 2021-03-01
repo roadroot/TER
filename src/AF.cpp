@@ -32,14 +32,14 @@
 using namespace std;
 
 AF::AF() : args(0), count(0) {}
-AF::AF(ter::IAF *iaf) : args(0), count(0)
+AF::AF(ter::IAF &iaf) : args(0), count(0)
 {
 	// TODO Implemented by us
-	for (string arg : iaf->get_args())
+	for (string arg : iaf.get_args())
 		add_argument(arg);
 	initialize_att_containers();
-	for (ter::Attack atk : iaf->get_attacks())
-		add_attack(make_pair(atk.get_arg1(), atk.get_arg2()));
+	for (ter::Attack atk : iaf.get_attacks())
+		add_attack(make_pair(atk.source, atk.target));
 }
 
 AF::AF(vector<string> args, vector<ter::Attack> attacks) : args(0), count(0)
@@ -49,7 +49,7 @@ AF::AF(vector<string> args, vector<ter::Attack> attacks) : args(0), count(0)
 		add_argument(arg);
 	initialize_att_containers();
 	for (ter::Attack atk : attacks)
-		add_attack(make_pair(atk.get_arg1(), atk.get_arg2()));
+		add_attack(make_pair(atk.source, atk.target));
 }
 
 void AF::add_argument(string arg)
@@ -60,6 +60,7 @@ void AF::add_argument(string arg)
 
 void AF::add_attack(pair<string, string> att)
 {
+	// TODO SAVED attacks with indefined args are ignored
 	if (arg_to_int.count(att.first) == 0 || arg_to_int.count(att.second) == 0)
 	{
 		return;

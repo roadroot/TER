@@ -4,163 +4,134 @@
 #include <iostream>
 #include <regex>
 #include <boost/algorithm/string.hpp>
+#include "Utilities.h"
 
+// TODO Implemented by us
 namespace ter
 {
-    IAF::IAF() {}
+#pragma region constructors
+    IAF::IAF()
+    {
+    }
 
-    // IAF::IAF(vector<string> const &args, vector<Attack> const &attacks, vector<string> const &iargs = {}, vector<Attack> const &iattacks = {})
-    // {
-    //     args_ = args;
-    //     iargs_ = iargs;
-    //     attacks_ = attacks;
-    //     iattacks_ = iattacks;
-    // }
+    // TODO maybe handle attacks with no existing arg
+    IAF::IAF(const IAF &iaf, const float &iargs_ration /*= 1*/, const float &iattacks_ration /*= 1*/)
+    {
+        // clone the IAF
+        args_ = vector<string>(iaf.args_);
+        iargs_ = vector<string>(iaf.iargs_);
+        // TODO create indexed attacks instead of searching the args vector
+        attacks_ = vector<Attack>(attacks_);
+        iattacks_ = vector<Attack>(iattacks_);
 
-    // IAF::IAF(vector<string> args, vector<Attack> attacks)
-    // {
-    //     args_ = args;
-    //     attacks_ = attacks;
-    // }
+        // check if input is consistent
+        if (iargs_ration < 0 || 1 < iargs_ration || iattacks_ration < 0 || 1 < iattacks_ration)
+            throw invalid_argument("Incomplete ratios must be between 0 and 1");
 
-    void IAF::add_arg(string arg)
+        // generate random incomplete args
+        float incoplete_size = iargs_ration * (args_.size() + iargs_.size());
+        while (iargs_.size() < incoplete_size)
+        {
+            int rand_index = random_index(args_.size());
+            iargs_.push_back(args_[rand_index]);
+            remove_arg(rand_index);
+        }
+
+        // add all attacks that have incomplete args (this may make incomplete attacks size greater than the requested one)
+        for (string arg : iargs_)
+            for (int atk = 0; atk < attacks_.size(); atk++)
+                if (attacks_[atk].source == arg || attacks_[atk].target == arg)
+                    (*this) * attacks_[atk] - attacks_[atk--];
+
+        // generate random incomplete attacks
+        incoplete_size = iattacks_ration * (attacks_.size() + iattacks_.size());
+        while (iargs_.size() < incoplete_size)
+        {
+            int rand_index = random_index(iargs_.size());
+            (*this) * attacks_[rand_index] - attacks_[rand_index];
+        }
+    }
+
+#pragma endregion
+
+#pragma region complete_args_manipulation
+    string IAF::get_arg(int index)
+    {
+        return args_[index];
+    }
+
+    void IAF::add_arg(string &arg)
     {
         args_.push_back(arg);
     }
-    void IAF::delete_arg(string arg)
+
+    bool IAF::remove_arg(int index)
     {
-        int pos = -1;
-        for (int i = 0; i < args_.size(); i++)
-        {
-            if (arg.compare(args_[i]) == 0)
-            {
-                pos = i;
-                break;
-            }
-        }
-        if (pos >= 0)
-        {
-            args_.erase(args_.begin() + pos);
-        }
-    }
-    void IAF::delete_arg(int pos)
-    {
-        args_.erase(args_.begin() + pos);
+        if (index >= args_.size())
+            return false;
+        args_.erase(args_.begin() + index);
+        return false;
     }
 
-    void IAF::add_iarg(string iarg)
+    bool IAF::remove_arg(string &arg)
+    {
+        for (int i = 0; i < args_.size(); i++)
+            if (arg == args_[i])
+            {
+                args_.erase(args_.begin() + i);
+                return true;
+            }
+        return false;
+    }
+
+    vector<string> IAF::get_args()
+    {
+        return args_;
+    }
+
+#pragma endregion
+
+#pragma region incomplete_args_manipulation
+    string IAF::get_iarg(int index)
+    {
+        return iargs_[index];
+    }
+
+    void IAF::add_iarg(string &iarg)
     {
         args_.push_back(iarg);
     }
 
-    void IAF::delete_iarg(string iarg)
+    bool IAF::remove_iarg(int index)
     {
-        int pos = -1;
+        if (index >= iargs_.size())
+            return false;
+        iargs_.erase(args_.begin() + index);
+        return true;
+    }
+
+    bool IAF::remove_iarg(string &iarg)
+    {
         for (int i = 0; i < iargs_.size(); i++)
-        {
-            if (iarg.compare(iargs_[i]) == 0)
+            if (iarg == iargs_[i])
             {
-                pos = i;
-                break;
-            }
-        }
-        if (pos >= 0)
-        {
-            iargs_.erase(args_.begin() + pos);
-        }
-    }
-
-    void IAF::delete_iarg(int pos)
-    {
-        iargs_.erase(args_.begin() + pos);
-    }
-
-    string IAF::get_arg(int pos)
-    {
-        return args_[pos];
-    }
-    string IAF::get_iarg(int pos)
-    {
-        return iargs_[pos];
-    }
-    string IAF::get_abs_arg(int pos)
-    {
-        int size = args_.size();
-        if (pos > size)
-        {
-            return iargs_[size - pos];
-        }
-        else
-        {
-            return args_[pos];
-        }
-    }
-
-    Attack IAF::get_attack(int pos)
-    {
-        return attacks_[pos];
-    }
-    Attack IAF::get_iattack(int pos)
-    {
-        return iattacks_[pos];
-    }
-    Attack IAF::get_abs_attack(int pos)
-    {
-        int size = attacks_.size();
-        if (pos > size)
-        {
-            return iattacks_[size - pos];
-        }
-        else
-        {
-            return attacks_[pos];
-        }
-    }
-    bool IAF::attack_exists(string arg1, string arg2)
-    {
-        for (Attack a : attacks_)
-        {
-            if (a.get_arg1().compare(arg1) == 0 && a.get_arg2().compare(arg2) == 0)
-            {
+                iargs_.erase(args_.begin() + i);
                 return true;
             }
-        }
-        return false;
-    }
-    bool IAF::attack_exists(Attack attack)
-    {
-        for (Attack a : attacks_)
-        {
-            if (a.get_arg1().compare(attack.get_arg1()) == 0 && a.get_arg2().compare(attack.get_arg2()) == 0)
-            {
-                return true;
-            }
-        }
         return false;
     }
 
-    bool IAF::iattack_exists(string arg1, string arg2)
+    vector<string> IAF::get_iargs()
     {
-        for (Attack a : iattacks_)
-        {
-            if (a.get_arg1().compare(arg1) == 0 && a.get_arg2().compare(arg2) == 0)
-            {
-                return true;
-            }
-        }
-        return false;
+        return iargs_;
     }
 
-    bool IAF::iattack_exists(Attack attack)
+#pragma endregion
+
+#pragma region complete_attacks_manipulation
+    Attack IAF::get_attack(int index)
     {
-        for (Attack a : iattacks_)
-        {
-            if (a.get_arg1().compare(attack.get_arg1()) == 0 && a.get_arg2().compare(attack.get_arg2()) == 0)
-            {
-                return true;
-            }
-        }
-        return false;
+        return attacks_[index];
     }
 
     void IAF::add_attack(Attack &attack)
@@ -168,35 +139,137 @@ namespace ter
         attacks_.push_back(attack);
     }
 
+    bool IAF::remove_attack(int index)
+    {
+        if (attacks_.size() <= index)
+            return false;
+        attacks_.erase(attacks_.begin() + index);
+        return true;
+    }
+
+    bool IAF::remove_attack(string &source, string &target, bool all)
+    {
+        bool found = false;
+        for (std::vector<ter::Attack>::iterator it = attacks_.begin(); it < attacks_.end(); ++it)
+            if (source == it->source && target == it->target)
+            {
+                attacks_.erase(it--);
+                found = true;
+                if (!all)
+                    return found;
+            }
+        return found;
+    }
+
+    bool IAF::remove_attack(Attack &attack, bool all)
+    {
+        return remove_attack(attack.source, attack.target, all);
+    }
+
+    bool IAF::attack_exists(Attack attack)
+    {
+        return attack_exists(attack.source, attack.target);
+    }
+
+    bool IAF::attack_exists(string source, string target)
+    {
+        for (Attack a : attacks_)
+            if (a.source == source && a.target == target)
+                return true;
+
+        return false;
+    }
+
+    vector<Attack> IAF::get_attacks()
+    {
+        return attacks_;
+    }
+
+#pragma endregion
+
+#pragma region incomplete_attacks_manipulation
+    Attack IAF::get_iattack(int index)
+    {
+        return iattacks_[index];
+    }
+
     void IAF::add_iattack(Attack &attack)
     {
         iattacks_.push_back(attack);
     }
 
-    void IAF::parse_from_tgf(ifstream &tgf_file)
+    bool IAF::remove_iattack(int index)
+    {
+        if (attacks_.size() <= index)
+            return false;
+        attacks_.erase(attacks_.begin() + index);
+        return true;
+    }
+
+    bool IAF::remove_iattack(string &source, string &target, bool all)
+    {
+        bool found = false;
+        for (std::vector<ter::Attack>::iterator it = attacks_.begin(); it < attacks_.end(); ++it)
+            if (source == it->source && target == it->target)
+            {
+                attacks_.erase(it--);
+                found = true;
+                if (!all)
+                    return found;
+            }
+        return found;
+    }
+
+    bool IAF::remove_iattack(Attack &attack, bool all)
+    {
+        return remove_attack(attack.source, attack.target, all);
+    }
+
+    bool IAF::iattack_exists(Attack attack)
+    {
+        return iattack_exists(attack.source, attack.target);
+    }
+
+    bool IAF::iattack_exists(string source, string target)
+    {
+        for (Attack a : iattacks_)
+            if (a.source == source && a.target == target)
+                return true;
+        return false;
+    }
+
+    vector<Attack> IAF::get_iattacks()
+    {
+        return iattacks_;
+    }
+
+#pragma endregion
+
+#pragma region io
+    void IAF::parse_from_tgf(istream &stream)
     {
         // TODO wrong lines ignored
         // TODO handle exceptions
         string line;
-        while (getline(tgf_file, line) && line.compare("#") != 0)
+        while (getline(stream, line) && line.compare("#") != 0)
             if (line[0] == '?')
                 iargs_.push_back(line.substr(1));
             else
                 args_.push_back(line);
 
-        while (getline(tgf_file, line))
+        while (getline(stream, line))
             if (line[0] == '?')
                 iattacks_.push_back(Attack(line.substr(1)));
             else
                 attacks_.push_back(Attack(line));
     }
 
-    void IAF::parse_from_apx(ifstream &apx_file)
+    void IAF::parse_from_apx(istream &stream)
     {
         // TODO wrong lines ignored
         // TODO handle exceptions
         string line;
-        while (getline(apx_file, line))
+        while (getline(stream, line))
         {
             if (line[0] == '?')
             {
@@ -214,50 +287,22 @@ namespace ter
 
     void IAF::write_tgf(string name)
     {
-        ofstream wfile;
-        wfile.open(name);
+        ofstream wfile = ofstream(name);
         for (string s : args_)
-        {
             wfile << s << endl;
-        }
+
         for (string s : iargs_)
-        {
             wfile << s << endl;
-        }
+
         wfile << "#" << endl;
+
         for (Attack a : attacks_)
-        {
-            wfile << a.get_arg1() << " " << a.get_arg2() << endl;
-        }
+            wfile << a.source << " " << a.target << endl;
+
         for (Attack a : iattacks_)
-        {
-            wfile << "?" << a.get_arg1() << " " << a.get_arg2() << endl;
-        }
+            wfile << "?" << a.source << " " << a.target << endl;
+
         wfile.close();
-    }
-    // TODO
-    // ifstream IAF::write_apx()
-    // {
-    // }
-
-    vector<string> IAF::get_args()
-    {
-        return args_;
-    }
-
-    vector<string> IAF::get_iargs()
-    {
-        return iargs_;
-    }
-
-    vector<Attack> IAF::get_attacks()
-    {
-        return attacks_;
-    }
-
-    vector<Attack> IAF::get_iattacks()
-    {
-        return iattacks_;
     }
 
     void IAF::print_af()
@@ -275,13 +320,15 @@ namespace ter
         cout << "Certain attacks: " << endl;
         for (Attack a : attacks_)
         {
-            cout << "(" << a.get_arg1() << "," << a.get_arg2() << ")" << endl;
+            cout << "(" << a.source << "," << a.target << ")" << endl;
         }
         cout << "Incertain attacks: " << endl;
         for (Attack a : iattacks_)
         {
-            cout << "(" << a.get_arg1() << "," << a.get_arg2() << ")" << endl;
+            cout << "(" << a.source << "," << a.target << ")" << endl;
         }
     }
+
+#pragma endregion
 
 } // namespace ter

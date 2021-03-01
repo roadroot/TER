@@ -3,8 +3,8 @@
 #include <fstream>
 #include <stdlib.h>
 #include <string>
-#include <IAF.h>
 #include <AF.h>
+#include <IAF.h>
 #include "EnumerateExtensions.h"
 #include <math.h>
 #include <map>
@@ -68,10 +68,8 @@ string to_string(map<string, float> &scores)
 {
     string json;
     json += "{\n";
-    for (auto const& x : scores)
-        json+= "\t" + x.first
-                  + ": "
-                  + to_string(x.second) + ",\n";
+    for (auto const &x : scores)
+        json += "\t" + x.first + ": " + to_string(x.second) + ",\n";
     json += "}\n";
     return json;
 }
@@ -226,18 +224,22 @@ map<string, float> *compute_completions_credulous(ter::IAF &iaf, semantics sem =
     return scores;
 }
 
-int main(int argc, char *argv[])
+int main(const int argc, const char *argv[])
 {
     semantics sem = ST;
     task tsk = DC;
-    int grad;
-    ter::IAF iaf = ter::IAF();
+    ter::IAF iaf;
+
+    int grad = 1;
 #if DEBUG_ENABLED
     ifstream input;
     if (argc == 1)
         input.open("TEST.tgf");
     else
         input.open(argv[1]);
+
+    iaf.parse_from_tgf(input);
+    input.close();
 #else
     if (argc != 6)
     {
@@ -268,6 +270,7 @@ int main(int argc, char *argv[])
         cout << "Unsupported file format \"" << argv[2] << "\"" << endl;
         return -1;
     }
+    input.close();
 
     // parse the semantics
     sem = string_to_sem(argv[3]);
@@ -298,7 +301,9 @@ int main(int argc, char *argv[])
         cout << to_string(*compute_completions_credulous(iaf, sem, grad));
     else
         cout << to_string(*compute_completions_skeptical(iaf, sem, grad));
-    cout << "Nombre de complétions " << num_completion(iaf) << endl;
+#if DEBUG_ENABLED
+    cout << "Completion number " << num_completion(iaf) << endl;
+#endif
 
     return 0;
 }

@@ -34,8 +34,25 @@
 #include <string>
 #include "IAF.h"
 
-enum task { DC, DS, SE, EE, UNKNOWN_TASK };
-enum semantics { CO, PR, ST, GR, SST, STG, ID, UNKNOWN_SEM };
+enum task
+{
+	DC,
+	DS,
+	SE,
+	EE,
+	UNKNOWN_TASK
+};
+enum semantics
+{
+	CO,
+	PR,
+	ST,
+	GR,
+	SST,
+	STG,
+	ID,
+	UNKNOWN_SEM
+};
 
 /* The following hash_combine function is from the Boost software library
  * and is subject to the following licence.
@@ -65,71 +82,71 @@ enum semantics { CO, PR, ST, GR, SST, STG, ID, UNKNOWN_SEM };
  */
 
 template <class T>
-inline void hash_combine(std::size_t & seed, const T & v)
+inline void hash_combine(std::size_t &seed, const T &v)
 {
-  std::hash<T> hasher;
-  seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+	std::hash<T> hasher;
+	seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 }
 
 namespace std
 {
-  template<typename S, typename T> struct hash<pair<S, T>>
-  {
-	inline size_t operator()(const pair<S, T> & v) const
+	template <typename S, typename T>
+	struct hash<pair<S, T>>
 	{
-	  size_t seed = 0;
-	  ::hash_combine(seed, v.first);
-	  ::hash_combine(seed, v.second);
-	  return seed;
-	}
-  };
+		inline size_t operator()(const pair<S, T> &v) const
+		{
+			size_t seed = 0;
+			::hash_combine(seed, v.first);
+			::hash_combine(seed, v.second);
+			return seed;
+		}
+	};
 }
 
-class AF {
+class AF
+{
 public:
+	AF();
+	AF(ter::IAF&);
+	AF(vector<string>, vector<ter::Attack>);
 
-AF();
-AF(ter::IAF*);
-AF(vector<string>, vector<ter::Attack>);
+	semantics sem;
 
-semantics sem;
+	uint32_t args;
+	uint32_t count;
 
-uint32_t args;
-uint32_t count;
+	std::vector<std::string> int_to_arg;
+	std::unordered_map<std::string, uint32_t> arg_to_int;
 
-std::vector<std::string> int_to_arg;
-std::unordered_map<std::string,uint32_t> arg_to_int;
+	std::vector<std::vector<uint32_t>> attackers;
+	std::vector<uint8_t> self_attack;
+	std::unordered_map<std::pair<uint32_t, uint32_t>, bool> att_exists;
+	std::unordered_map<std::pair<uint32_t, uint32_t>, bool> symmetric_attack;
 
-std::vector<std::vector<uint32_t>> attackers;
-std::vector<uint8_t> self_attack;
-std::unordered_map<std::pair<uint32_t,uint32_t>,bool> att_exists;
-std::unordered_map<std::pair<uint32_t,uint32_t>,bool> symmetric_attack;
+	std::vector<std::pair<std::pair<uint32_t, uint32_t>, bool>> changes;
+	std::vector<std::pair<uint32_t, uint32_t>> dyn_atts;
+	std::vector<std::vector<uint32_t>> dyn_attackers;
+	std::unordered_map<std::pair<uint32_t, uint32_t>, bool> dyn_att_state;
+	std::unordered_map<std::pair<uint32_t, uint32_t>, uint32_t> att_encountered_last;
 
-std::vector<std::pair<std::pair<uint32_t,uint32_t>,bool>> changes;
-std::vector<std::pair<uint32_t,uint32_t>> dyn_atts;
-std::vector<std::vector<uint32_t>> dyn_attackers;
-std::unordered_map<std::pair<uint32_t,uint32_t>,bool> dyn_att_state;
-std::unordered_map<std::pair<uint32_t,uint32_t>,uint32_t> att_encountered_last;
+	std::vector<int> arg_var;
+	std::vector<int> range_var;
+	std::vector<int> attacked_by_accepted_var;
 
-std::vector<int> arg_var;
-std::vector<int> range_var;
-std::vector<int> attacked_by_accepted_var;
+	std::unordered_map<std::pair<uint32_t, uint32_t>, int> att_var;
+	std::unordered_map<std::pair<uint32_t, uint32_t>, int> source_accepted_var;
+	std::unordered_map<std::pair<uint32_t, uint32_t>, int> source_attacked_by_accepted_var;
 
-std::unordered_map<std::pair<uint32_t,uint32_t>,int> att_var;
-std::unordered_map<std::pair<uint32_t,uint32_t>,int> source_accepted_var;
-std::unordered_map<std::pair<uint32_t,uint32_t>,int> source_attacked_by_accepted_var;
+	std::vector<int> selector_var;
 
-std::vector<int> selector_var;
+	void add_argument(std::string arg);
+	void add_attack(std::pair<std::string, std::string> att);
 
-void add_argument(std::string arg);
-void add_attack(std::pair<std::string,std::string> att);
+	void add_change(std::pair<std::string, std::string> att, bool is_addition);
+	void add_dyn_attack(std::pair<std::string, std::string> att);
 
-void add_change(std::pair<std::string,std::string> att, bool is_addition);
-void add_dyn_attack(std::pair<std::string,std::string> att);
-
-void initialize_att_containers();
-void initialize_vars();
-
+	void initialize_att_containers();
+	void initialize_vars();
 };
 
 #endif

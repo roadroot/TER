@@ -13,14 +13,13 @@ namespace ter
         public:
             Attack();
             Attack(string attack);
-            Attack(string arg1, string arg2);
-            string get_arg1();
-            string get_arg2();
-            void set_arg1(string arg1);
-            void set_arg2(string arg2);
+            Attack(string source, string target);
+            string source;
+            string target;
+            const bool inline operator==(Attack atk) {
+                return source == atk.source && target == target;
+            }
         private:
-            string arg1_;
-            string arg2_;
     };
 } // namespace std
 
