@@ -330,7 +330,6 @@ int main(const int argc, const char *argv[])
         cout << "c:" << num_completion(iaf) << endl;
     }
     else{
-        time_t start, end;
         clock_t startt = clock();
         cout << to_string(*compute_completions_skeptical(iaf, sem, grad));
         clock_t endd = clock();
