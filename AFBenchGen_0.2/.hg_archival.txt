@@ -1,0 +1,4 @@
+repo: 24eb2d0d790833a75c04a50cc997871cc7d3f3a5
+node: 1b8f218ed64fa0d9a63f39b9984a8b19ba8007b1
+branch: sourceforge
+tag: 0.2
