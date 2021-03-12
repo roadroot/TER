@@ -54,6 +54,10 @@ namespace ter
 
 #pragma endregion
 
+    int IAF::get_size(){
+        return args_.size() + iargs_.size();
+    }
+
 #pragma region complete_args_manipulation
     string IAF::get_arg(int index)
     {

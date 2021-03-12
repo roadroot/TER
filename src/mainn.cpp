@@ -328,6 +328,7 @@ int main(const int argc, const char *argv[])
         double elapsed = double(endd - startt)/CLOCKS_PER_SEC;
         cout << "t:" << elapsed << setprecision(5) <<  endl;
         cout << "c:" << num_completion(iaf) << endl;
+        cout << "s:" << iaf.get_size() << endl;
     }
     else{
         clock_t startt = clock();
@@ -336,6 +337,7 @@ int main(const int argc, const char *argv[])
         double elapsed = double(endd - startt)/CLOCKS_PER_SEC;
         cout << "t:" << elapsed << setprecision(5) <<  endl;
         cout << "c:" << num_completion(iaf) << endl;
+        cout << "s:" << iaf.get_size() << endl;
         }
 #if DEBUG_ENABLED
     cout << "Completion number " << num_completion(iaf) << endl;
