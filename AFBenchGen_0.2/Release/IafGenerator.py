@@ -74,7 +74,7 @@ def random_af(size):
     return "./AFBenchGen -SCCnumMEAN " + str(v) + " -SCCnumSTD 0 -SCCdimMEAN " + str(size/v) +  " -SCCdimSTD 1 -SCCpercEach 15"
 
 def complete_generator(path=os.getcwd()):
-    npath= path + "/Experimentation_iafs2"
+    npath= path + "/Experimentation"
     try:
         os.stat(npath)
     except:
@@ -121,7 +121,7 @@ def get_results(path):
 
 
 #os.system("./AFBenchGen -SCCnumMEAN " + str(2) + " -SCCnumSTD 0 -SCCdimMEAN " + str(10) +  " -SCCdimSTD 1 > test.txt")
-#complete_generator()
+complete_generator()
 #af_to_iaf("test.txt",0.30)
 #test_some("Experimentation_iafs2/exemples_20/exemples_r_0.1/")
-get_results("Results_20_0.1/")
+#get_results("Results_20_0.1/")
