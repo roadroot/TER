@@ -6,10 +6,15 @@
 #include <AF.h>
 #include <IAF.h>
 #include "EnumerateExtensions.h"
+#include "SingleExtension.h"
 #include <math.h>
 #include <map>
 #include <algorithm>
-#define DEBUG_ENABLED false
+#include <time.h>
+#include <bits/stdc++.h>
+#include "Utilities.h"
+#include "Result.h"
+#define DEBUG_ENABLED true
 
 using namespace std;
 
@@ -43,7 +48,7 @@ long num_completion(ter::IAF &iaf)
     return pow(2, iaf.get_iargs().size()) * pow(2, iaf.get_iattacks().size());
 }
 
-string to_string(vector<vector<string>> result)
+string to_string(vector<vector<string>> &result)
 {
     string equ_str = "\t{\n";
     for (vector<string> v2 : result)
@@ -56,10 +61,10 @@ string to_string(vector<vector<string>> result)
     return equ_str.substr(0, equ_str.length() - 2) + "\n\t}";
 }
 
-string to_string(vector<vector<vector<string>>> *completions)
+string to_string(vector<vector<vector<string>>> &completions)
 {
     string json = "{\n";
-    for (vector<vector<string>> v1 : *completions)
+    for (vector<vector<string>> v1 : completions)
         json += to_string(v1) + ",\n";
     return json.substr(0, json.length() - 2) + "\n}\n";
 }
@@ -75,7 +80,7 @@ string to_string(map<string, float> &scores)
 }
 
 // long to vector of bytes (for the completion generation (look at compute_completions_*))
-vector<bool> encode(long value)
+vector<bool> &encode(long value)
 {
     vector<bool> *boolvalue = new vector<bool>();
     do
@@ -85,16 +90,21 @@ vector<bool> encode(long value)
 }
 
 // calculate the completions, their extention and arguments score with skept acceptance
-map<string, float> *compute_completions_skeptical(ter::IAF &iaf, semantics sem = ST, int grad_meth = 1)
+void compute_completions_skeptical(ter::IAF &iaf, ter::Result &result, semantics sem = ST, int grad_meth = 1)
 {
     map<string, float> *scores = new map<string, float>();
-    double num_comp = num_completion(iaf);
-    for (string arg : iaf.get_args())
+    map<string, float> scores_2 = map<string, float>();
+    double num_comp = 0;
+    for (string arg : iaf.args_) {
         (*scores)[arg] = 0;
-    for (string arg : iaf.get_iargs())
+        scores_2[arg] = 0;
+    }
+    for (string arg : iaf.iargs_) {
         (*scores)[arg] = 0;
-    long n_poss_arg = pow(2, iaf.get_iargs().size());
-    long n_poss_attacks = pow(2, iaf.get_iattacks().size());
+        scores_2[arg] = 0;
+    }
+    long n_poss_arg = pow(2, iaf.args_.size());
+    long n_poss_attacks = pow(2, iaf.iargs_.size());
     for (long i = 0; i < n_poss_arg; i++)
     {
         vector<string> cargs = iaf.get_args();
@@ -107,17 +117,29 @@ map<string, float> *compute_completions_skeptical(ter::IAF &iaf, semantics sem =
         {
             vector<ter::Attack> cattacks = iaf.get_attacks();
             vector<bool> valid_attacks = encode(l);
+            AF af;
             for (int m = 0; m < valid_attacks.size(); m++)
-                if (valid_attacks[m])
-                    cattacks.push_back(iaf.get_iattack(m));
+                if (valid_attacks[m]) {
+                    ter::Attack atk = iaf.get_iattack(m);
+                    if(!exists(cargs, atk.source) || !exists(cargs, atk.target))
+                        goto END_FOR_SKEPTICAL;
+                    cattacks.push_back(atk);
+                }
 
-            AF af = AF(cargs, cattacks);
+            af = AF(cargs, cattacks);
+            for(string arg : cargs) scores_2[arg]++;
+            num_comp++;
             af.initialize_vars();
             std::vector<std::vector<std::string>> *extentions;
             switch (sem)
             {
             case ST:
+                //for(string s:af.int_to_arg){
+                  //  cout << "ici: " << s << endl;
+                //}
                 extentions = EnumerateExtensions::stable(af);
+                //cout << "extention: " << endl;
+                //cout << to_string(*extentions) << endl;
                 break;
 
             case CO:
@@ -125,12 +147,19 @@ map<string, float> *compute_completions_skeptical(ter::IAF &iaf, semantics sem =
                 break;
 
             case PR:
+               //for(string s:af.int_to_arg){
+                 //   cout << "ici: " << s << endl;
+                //}
                 extentions = EnumerateExtensions::preferred(af);
+                //cout << "extention: " << endl;
+                //cout << to_string(*extentions) << endl;
                 break;
 
             case GR:
-                cout << "Unsupported problem" << endl;
-                exit(-1);
+                extentions = SingleExtension::grounded(af,0);
+                //cout << "Unsupported problem" << endl;
+                //exit(-1);
+                break;
 
             default:
                 break;
@@ -140,31 +169,42 @@ map<string, float> *compute_completions_skeptical(ter::IAF &iaf, semantics sem =
             {
                 bool accepted = true;
                 for (std::vector<std::string> ext : *extentions)
-                    if (std::find(ext.begin(), ext.end(), arg) == ext.end())
+                    if (!exists(ext, arg))
                     {
                         accepted = false;
                         break;
                     }
                 if (accepted)
-                    if (grad_meth == 1 || std::find(iaf.get_args().begin(), iaf.get_args().end(), arg) != iaf.get_args().end())
-                        (*scores)[arg] += 1 / num_comp;
-                    else
-                        (*scores)[arg] += 1 / num_comp * 2;
+                    (*scores)[arg] += 1;
             }
+            END_FOR_SKEPTICAL:;
         }
     }
-    return scores;
+    for(const auto pair : scores_2) {
+        //cout << pair.first << " " << pair.second << " " << (*scores)[pair.first] << endl;
+        if(grad_meth == 1)
+            (*scores)[pair.first] /= num_comp;
+        else
+            (*scores)[pair.first] /= pair.second;
+    }
+    result.scores = scores;
+    result.completion_number = num_comp;
 }
 
 // calculate the completions, their extention and arguments score with cred acceptance
-map<string, float> *compute_completions_credulous(ter::IAF &iaf, semantics sem = ST, int grad_meth = 1)
+void compute_completions_credulous(ter::IAF &iaf, ter::Result &result, semantics sem = ST, int grad_meth = 1)
 {
     map<string, float> *scores = new map<string, float>();
-    double num_comp = num_completion(iaf);
-    for (string arg : iaf.get_args())
+    map<string, float> scores_2 = map<string, float>();
+    double num_comp = 0;
+    for (string arg : iaf.args_) {
         (*scores)[arg] = 0;
-    for (string arg : iaf.get_iargs())
+        scores_2[arg] = 0;
+    }
+    for (string arg : iaf.iargs_) {
         (*scores)[arg] = 0;
+        scores_2[arg] = 0;
+    }
     long n_poss_arg = pow(2, iaf.get_iargs().size());
     long n_poss_attacks = pow(2, iaf.get_iattacks().size());
     for (long i = 0; i < n_poss_arg; i++)
@@ -179,11 +219,18 @@ map<string, float> *compute_completions_credulous(ter::IAF &iaf, semantics sem =
         {
             vector<ter::Attack> cattacks = iaf.get_attacks();
             vector<bool> valid_attacks = encode(l);
+            AF af;
             for (int m = 0; m < valid_attacks.size(); m++)
-                if (valid_attacks[m])
-                    cattacks.push_back(iaf.get_iattack(m));
+                if (valid_attacks[m]) {
+                    ter::Attack atk = iaf.get_iattack(m);
+                    if(!exists(cargs, atk.source) || !exists(cargs, atk.target))
+                        goto END_FOR_CREDULOUS;
+                    cattacks.push_back(atk);
+                }
 
-            AF af = AF(cargs, cattacks);
+            af = AF(cargs, cattacks);
+            for(string arg : cargs) scores_2[arg]++;
+            num_comp++;
             af.initialize_vars();
             std::vector<std::vector<std::string>> *extentions;
             switch (sem)
@@ -201,8 +248,8 @@ map<string, float> *compute_completions_credulous(ter::IAF &iaf, semantics sem =
                 break;
 
             case GR:
-                cout << "Unsupported problem" << endl;
-                exit(-1);
+                extentions = SingleExtension::grounded(af,0);
+                break;
 
             default:
                 break;
@@ -210,18 +257,23 @@ map<string, float> *compute_completions_credulous(ter::IAF &iaf, semantics sem =
             for (string arg : af.int_to_arg)
             {
                 for (std::vector<std::string> ext : *extentions)
-                    if (std::find(ext.begin(), ext.end(), arg) != ext.end())
-                    {
-                        if (grad_meth == 1 || std::find(iaf.get_args().begin(), iaf.get_args().end(), arg) != ext.end())
-                            (*scores)[arg] += 1 / num_comp;
-                        else
-                            (*scores)[arg] += 1 / num_comp * 2;
+                    if (exists(ext, arg)) {
+                        (*scores)[arg] += 1;
                         break;
                     }
             }
+            END_FOR_CREDULOUS:;
         }
     }
-    return scores;
+    for(const auto pair : scores_2) {
+        //cout << pair.first << " " << pair.second << " " << (*scores)[pair.first] << endl;
+        if(grad_meth == 1)
+            (*scores)[pair.first] /= num_comp;
+        else
+            (*scores)[pair.first] /= pair.second;
+    }
+    result.scores = scores;
+    result.completion_number = num_comp;
 }
 
 int main(const int argc, const char *argv[])
@@ -229,12 +281,11 @@ int main(const int argc, const char *argv[])
     semantics sem = ST;
     task tsk = DC;
     ter::IAF iaf;
-
     int grad = 1;
 #if DEBUG_ENABLED
     ifstream input;
     if (argc == 1)
-        input.open("TEST.tgf");
+        input.open("Test20.tgf");
     else
         input.open(argv[1]);
 
@@ -297,13 +348,14 @@ int main(const int argc, const char *argv[])
     }
 
 #endif
+    ter::Result result = ter::Result(tsk, NULL, 0, grad);
+    auto start = chrono::high_resolution_clock::now();
     if (tsk == DC)
-        cout << to_string(*compute_completions_credulous(iaf, sem, grad));
+        compute_completions_credulous(iaf, result, sem, grad);
     else
-        cout << to_string(*compute_completions_skeptical(iaf, sem, grad));
-#if DEBUG_ENABLED
-    cout << "Completion number " << num_completion(iaf) << endl;
-#endif
-
+        compute_completions_skeptical(iaf, result, sem, grad);
+    result.time = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - start).count();
+    cout << to_string(*result.scores); 
+    cout << result.to_string();
     return 0;
 }

@@ -108,6 +108,25 @@ bool stable(const AF & af)
 	}
 }
 
+vector<vector<std::string>> *grounded(const AF & af,int usless)
+{
+	vector<vector<std::string>> *results = new vector<vector<std::string>>();
+	SAT_Solver solver = SAT_Solver(af.count, af.args);
+	Encodings::add_complete(af, solver);
+	bool sat = solver.propagate();
+	if (sat) {
+		vector<uint32_t> extension;
+		for (uint32_t i = 0; i < af.args; i++) {
+			if (solver.assignment[af.arg_var[i]-1]) {
+				extension.push_back(i);
+			}
+		}
+		//print_single_extension(af, extension, 0);
+		results->push_back(get_single_extension(af,extension,0));
+	}
+	return results;
+}
+
 bool grounded(const AF & af)
 {
 	SAT_Solver solver = SAT_Solver(af.count, af.args);
