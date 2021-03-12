@@ -37,6 +37,7 @@ bool complete(const AF & af);
 bool preferred(const AF & af);
 bool stable(const AF & af);
 bool grounded(const AF & af);
+vector<vector<std::string>> *grounded(const AF & af,int usless);
 bool semi_stable(const AF & af);
 bool stage(const AF & af);
 bool ideal(const AF & af);
