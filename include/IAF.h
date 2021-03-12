@@ -327,7 +327,7 @@ namespace ter
 
 #pragma endregion
 
-	private:
+
 		vector<string> args_;
 		vector<string> iargs_;
 		vector<Attack> attacks_;
