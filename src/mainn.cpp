@@ -6,9 +6,12 @@
 #include <AF.h>
 #include <IAF.h>
 #include "EnumerateExtensions.h"
+#include "SingleExtension.h"
 #include <math.h>
 #include <map>
 #include <algorithm>
+#include<time.h>
+#include <bits/stdc++.h> 
 #define DEBUG_ENABLED false
 
 using namespace std;
@@ -117,7 +120,12 @@ map<string, float> *compute_completions_skeptical(ter::IAF &iaf, semantics sem =
             switch (sem)
             {
             case ST:
+                //for(string s:af.int_to_arg){
+                  //  cout << "ici: " << s << endl;
+                //}
                 extentions = EnumerateExtensions::stable(af);
+                //cout << "extention: " << endl;
+                //cout << to_string(*extentions) << endl;
                 break;
 
             case CO:
@@ -125,12 +133,19 @@ map<string, float> *compute_completions_skeptical(ter::IAF &iaf, semantics sem =
                 break;
 
             case PR:
+               //for(string s:af.int_to_arg){
+                 //   cout << "ici: " << s << endl;
+                //}
                 extentions = EnumerateExtensions::preferred(af);
+                //cout << "extention: " << endl;
+                //cout << to_string(*extentions) << endl;
                 break;
 
             case GR:
-                cout << "Unsupported problem" << endl;
-                exit(-1);
+                extentions = SingleExtension::grounded(af,0);
+                //cout << "Unsupported problem" << endl;
+                //exit(-1);
+                break;
 
             default:
                 break;
@@ -146,10 +161,12 @@ map<string, float> *compute_completions_skeptical(ter::IAF &iaf, semantics sem =
                         break;
                     }
                 if (accepted)
-                    if (grad_meth == 1 || std::find(iaf.get_args().begin(), iaf.get_args().end(), arg) != iaf.get_args().end())
-                        (*scores)[arg] += 1 / num_comp;
-                    else
-                        (*scores)[arg] += 1 / num_comp * 2;
+                    if (grad_meth == 1 || std::find(iaf.args_.begin(), iaf.args_.end(), arg) != iaf.args_.end()){
+                        //cout << arg << " " <<(std::find(iaf.get_args().begin(), iaf.get_args().end(), "ars")§= iaf.get_args().end())<< endl;
+                        //iaf.print_af();
+                        (*scores)[arg] += 1 / num_comp;}
+                    else{
+                        (*scores)[arg] += 1 / num_comp * 2;}
             }
         }
     }
@@ -189,7 +206,12 @@ map<string, float> *compute_completions_credulous(ter::IAF &iaf, semantics sem =
             switch (sem)
             {
             case ST:
+                //for(string s:af.int_to_arg){
+                  //  cout << "ici: " << s << endl;
+                //}
                 extentions = EnumerateExtensions::stable(af);
+                //cout << "extention: " << endl;
+                //cout << to_string(*extentions) << endl;
                 break;
 
             case CO:
@@ -201,8 +223,10 @@ map<string, float> *compute_completions_credulous(ter::IAF &iaf, semantics sem =
                 break;
 
             case GR:
-                cout << "Unsupported problem" << endl;
-                exit(-1);
+                extentions = SingleExtension::grounded(af,0);
+                //cout << "Unsupported problem" << endl;
+                //exit(-1);
+                break;
 
             default:
                 break;
@@ -212,7 +236,7 @@ map<string, float> *compute_completions_credulous(ter::IAF &iaf, semantics sem =
                 for (std::vector<std::string> ext : *extentions)
                     if (std::find(ext.begin(), ext.end(), arg) != ext.end())
                     {
-                        if (grad_meth == 1 || std::find(iaf.get_args().begin(), iaf.get_args().end(), arg) != ext.end())
+                        if (grad_meth == 1 || std::find(iaf.args_.begin(), iaf.args_.end(), arg) != iaf.args_.end())
                             (*scores)[arg] += 1 / num_comp;
                         else
                             (*scores)[arg] += 1 / num_comp * 2;
@@ -297,10 +321,23 @@ int main(const int argc, const char *argv[])
     }
 
 #endif
-    if (tsk == DC)
-        cout << to_string(*compute_completions_credulous(iaf, sem, grad));
-    else
+    if (tsk == DC){
+        clock_t startt = clock();
+        cout << to_string(*compute_completions_credulous(iaf, sem, grad)); 
+        clock_t endd = clock();
+        double elapsed = double(endd - startt)/CLOCKS_PER_SEC;
+        cout << "t:" << elapsed << setprecision(5) <<  endl;
+        cout << "c:" << num_completion(iaf) << endl;
+    }
+    else{
+        time_t start, end;
+        clock_t startt = clock();
         cout << to_string(*compute_completions_skeptical(iaf, sem, grad));
+        clock_t endd = clock();
+        double elapsed = double(endd - startt)/CLOCKS_PER_SEC;
+        cout << "t:" << elapsed << setprecision(5) <<  endl;
+        cout << "c:" << num_completion(iaf) << endl;
+        }
 #if DEBUG_ENABLED
     cout << "Completion number " << num_completion(iaf) << endl;
 #endif
