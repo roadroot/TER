@@ -8,10 +8,10 @@ from os import listdir
 from os.path import isfile, join
 import matplotlib.pyplot as plt
 
-af_sizes= [20,40,60]
+af_sizes= [10,20,40]
 nb_exemples=100
 ratio_att_arg =0.5
-inc_ratio = [0.05,0.10,0.15,0.25]
+inc_ratio = [0.05,0.15,0.25,0.5]
 ter_path="/home/nassim/Desktop/projects/TER/trafic"
 
 def getFactors(n):
