@@ -14,7 +14,7 @@
 #include <bits/stdc++.h>
 #include "Utilities.h"
 #include "Result.h"
-#define DEBUG_ENABLED true
+#define DEBUG_ENABLED false
 
 using namespace std;
 
