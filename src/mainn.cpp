@@ -94,7 +94,7 @@ void compute_completions_skeptical(ter::IAF &iaf, ter::Result &result, semantics
 {
     map<string, float> *scores = new map<string, float>();
     map<string, float> scores_2 = map<string, float>();
-    double num_comp = 0;
+    long num_comp = 0;
     for (string arg : iaf.args_) {
         (*scores)[arg] = 0;
         scores_2[arg] = 0;
