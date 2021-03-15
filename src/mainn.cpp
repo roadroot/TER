@@ -103,8 +103,8 @@ void compute_completions_skeptical(ter::IAF &iaf, ter::Result &result, semantics
         (*scores)[arg] = 0;
         scores_2[arg] = 0;
     }
-    long n_poss_arg = pow(2, iaf.args_.size());
-    long n_poss_attacks = pow(2, iaf.iargs_.size());
+    long n_poss_arg = pow(2, iaf.iargs_.size());
+    long n_poss_attacks = pow(2, iaf.iattacks_.size());
     for (long i = 0; i < n_poss_arg; i++)
     {
         vector<string> cargs = iaf.get_args();
@@ -316,6 +316,7 @@ int main(const int argc, const char *argv[])
         cout << "An error occured while openning \"" << argv[1] << "\"" << endl;
         return -1;
     }
+
 
     // parse the file according to its format
     if (string(argv[2]) == "tgf")
