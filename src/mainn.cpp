@@ -287,6 +287,7 @@ int main(const int argc, const char *argv[])
     task tsk = DC;
     ter::IAF iaf;
     int grad = 1;
+    bool testing = false;
 #if DEBUG_ENABLED
     ifstream input;
     if (argc == 1)
@@ -297,7 +298,7 @@ int main(const int argc, const char *argv[])
     iaf.parse_from_tgf(input);
     input.close();
 #else
-    if (argc != 6)
+    if (!(argc == 6 || argc == 7 && !strcmp(argv[6], "-t")))
     {
         cout << "Usage: " << argv[0] << " <file> <format> <SM> <task> <GS>" << endl
              << "<file>:\t\tFile containing the AF" << endl
@@ -360,7 +361,9 @@ int main(const int argc, const char *argv[])
     else
         compute_completions_skeptical(iaf, result, sem, grad);
     result.time = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - start).count();
-    cout << to_string(*result.scores); 
-    cout << result.to_string();
+    if(testing)
+        cout << result.to_string();
+    else
+        cout << to_string(*result.scores); 
     return 0;
 }
