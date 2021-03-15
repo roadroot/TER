@@ -31,6 +31,7 @@ namespace ter
          */
 		IAF(const IAF &iaf, const float &iargs_ration = 1, const float &iattacks_ration = 1);
 #pragma endregion constructors
+		int get_size();
 
 #pragma region complete_args_manipulation
 		/**

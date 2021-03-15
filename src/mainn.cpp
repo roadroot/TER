@@ -236,7 +236,12 @@ void compute_completions_credulous(ter::IAF &iaf, ter::Result &result, semantics
             switch (sem)
             {
             case ST:
+                //for(string s:af.int_to_arg){
+                  //  cout << "ici: " << s << endl;
+                //}
                 extentions = EnumerateExtensions::stable(af);
+                //cout << "extention: " << endl;
+                //cout << to_string(*extentions) << endl;
                 break;
 
             case CO:

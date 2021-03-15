@@ -2,8 +2,6 @@
 #include <IAF.h>
 #include <fstream>
 #include <iostream>
-#include <regex>
-#include <boost/algorithm/string.hpp>
 #include "Utilities.h"
 
 // TODO Implemented by us
@@ -53,6 +51,10 @@ namespace ter
     }
 
 #pragma endregion
+
+    int IAF::get_size(){
+        return args_.size() + iargs_.size();
+    }
 
 #pragma region complete_args_manipulation
     string IAF::get_arg(int index)
