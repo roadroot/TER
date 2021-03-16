@@ -35,7 +35,7 @@ using namespace std;
 #include "hgversion.h"
 #else
 #define HG(a) static const char *hgrev = a;
-HG("Version:  0.2");
+HG("Version: 0.2");
 #endif
 
 #include "AF.h"
