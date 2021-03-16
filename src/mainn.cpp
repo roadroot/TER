@@ -309,6 +309,8 @@ int main(const int argc, const char *argv[])
         return 0;
     }
 
+    if(argc == 7) testing = true;
+
     // read the file and check its readability
     ifstream input = ifstream(argv[1]);
     if (!input.good())
