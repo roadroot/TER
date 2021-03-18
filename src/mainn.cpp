@@ -1,5 +1,4 @@
 #include <iostream>
-#include <stdio.h>
 #include <fstream>
 #include <stdlib.h>
 #include <string>
@@ -14,9 +13,19 @@
 #include <bits/stdc++.h>
 #include "Utilities.h"
 #include "Result.h"
+#include <chrono>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+
 #define DEBUG_ENABLED false
+#define TIMEOUT 1s
 
 using namespace std;
+
+bool is_number(const std::string &s) {
+  return !s.empty() && std::all_of(s.begin(), s.end(), ::isdigit);
+}
 
 // parse user input
 semantics string_to_sem(string problem)
@@ -281,6 +290,50 @@ void compute_completions_credulous(ter::IAF &iaf, ter::Result &result, semantics
     result.completion_number = num_comp;
 }
 
+void compute_completions_skeptical_wrapper(ter::IAF &iaf, ter::Result &result, semantics sem = ST, int grad_meth = 1, auto timeout=10s)
+{
+    std::mutex m;
+    std::condition_variable cv;
+
+    std::thread t([&cv, &iaf, &result, &sem, &grad_meth]() 
+    {
+        compute_completions_skeptical(iaf, result, sem, grad_meth);
+        cv.notify_one();
+    });
+
+    t.detach();
+
+    {
+        std::unique_lock<std::mutex> l(m);
+        if(cv.wait_for(l, timeout) == std::cv_status::timeout)  {
+            cout << "timeout" << endl;
+            exit(1);
+        }
+    }
+}
+
+void compute_completions_credulous_wrapper(ter::IAF &iaf, ter::Result &result, semantics sem = ST, int grad_meth = 1, auto timeout=10s)
+{
+    std::mutex m;
+    std::condition_variable cv;
+
+    std::thread t([&cv, &iaf, &result, &sem, &grad_meth]() 
+    {
+        compute_completions_credulous(iaf, result, sem, grad_meth);
+        cv.notify_one();
+    });
+
+    t.detach();
+
+    {
+        std::unique_lock<std::mutex> l(m);
+        if(cv.wait_for(l, timeout) == std::cv_status::timeout)  {
+            cout << "timeout" << endl;
+            exit(1);
+        }
+    }
+}
+
 int main(const int argc, const char *argv[])
 {
     semantics sem = ST;
@@ -288,6 +341,7 @@ int main(const int argc, const char *argv[])
     ter::IAF iaf;
     int grad = 1;
     bool testing = false;
+    auto timeout = 3600s;
 #if DEBUG_ENABLED
     ifstream input;
     if (argc == 1)
@@ -298,7 +352,7 @@ int main(const int argc, const char *argv[])
     iaf.parse_from_tgf(input);
     input.close();
 #else
-    if (!(argc == 6 || argc == 7 && !strcmp(argv[6], "-t")))
+    if (!(argc == 6 || argc == 7 && is_number(argv[6])))
     {
         cout << "Usage: " << argv[0] << " <file> <format> <SM> <task> <GS>" << endl
              << "<file>:\t\tFile containing the AF" << endl
@@ -309,7 +363,10 @@ int main(const int argc, const char *argv[])
         return 0;
     }
 
-    if(argc == 7) testing = true;
+    if(argc == 7) {
+        testing = true;
+        timeout = std::chrono::seconds(stoi(argv[6]));
+    }
 
     // read the file and check its readability
     ifstream input = ifstream(argv[1]);
@@ -360,9 +417,9 @@ int main(const int argc, const char *argv[])
     ter::Result result = ter::Result(tsk, NULL, 0, grad);
     auto start = chrono::high_resolution_clock::now();
     if (tsk == DC)
-        compute_completions_credulous(iaf, result, sem, grad);
+        compute_completions_credulous_wrapper(iaf, result, sem, grad, timeout);
     else
-        compute_completions_skeptical(iaf, result, sem, grad);
+        compute_completions_skeptical_wrapper(iaf, result, sem, grad, timeout);
     result.time = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - start).count();
     if(testing)
         cout << result.to_string();
