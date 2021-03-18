@@ -429,7 +429,7 @@ int main(const int argc, const char *argv[])
             cout << to_string(*result.scores); 
         return 0;   
     }
-    catch (const std::bad_alloc&&)
+    catch (const std::bad_alloc& ex)
     {
         cout << "memory out" << std::endl;
     }
