@@ -177,6 +177,8 @@ void compute_completions_skeptical(ter::IAF &iaf, ter::Result &result, semantics
                     (*scores)[arg] += 1;
             }
             cattacks.clear();
+            for(std::vector<std::string> ext : *extentions)
+                ext.clear();
             extentions->clear();
             delete extentions;
             END_FOR_SKEPTICAL:;
@@ -267,6 +269,8 @@ void compute_completions_credulous(ter::IAF &iaf, ter::Result &result, semantics
                     }
             }
             cattacks.clear();
+            for(std::vector<std::string> ext : *extentions)
+                ext.clear();
             extentions->clear();
             delete extentions;
             END_FOR_CREDULOUS:;
