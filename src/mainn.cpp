@@ -176,12 +176,12 @@ void compute_completions_skeptical(ter::IAF &iaf, ter::Result &result, semantics
                 if (accepted)
                     (*scores)[arg] += 1;
             }
-            cattacks.delete();
+            cattacks.clear();
             extentions->clear();
             delete extentions;
             END_FOR_SKEPTICAL:;
         }
-        cargs.delete();
+        cargs.clear();
     }
     for(const auto pair : scores_2) {
         if(grad_meth == 1)
@@ -266,12 +266,12 @@ void compute_completions_credulous(ter::IAF &iaf, ter::Result &result, semantics
                         break;
                     }
             }
-            cattacks.delete();
+            cattacks.clear();
             extentions->clear();
             delete extentions;
             END_FOR_CREDULOUS:;
         }
-        cargs.delete();
+        cargs.clear();
     }
     for(const auto pair : scores_2) {
         //cout << pair.first << " " << pair.second << " " << (*scores)[pair.first] << endl;
