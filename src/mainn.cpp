@@ -174,6 +174,7 @@ void compute_completions_skeptical(ter::IAF &iaf, ter::Result &result, semantics
                 if (accepted)
                     (*scores)[arg] += 1;
             }
+            extentions->clear();
             delete extentions;
             END_FOR_SKEPTICAL:;
         }
@@ -259,6 +260,7 @@ void compute_completions_credulous(ter::IAF &iaf, ter::Result &result, semantics
                         break;
                     }
             }
+            extentions->clear();
             delete extentions;
             END_FOR_CREDULOUS:;
         }
