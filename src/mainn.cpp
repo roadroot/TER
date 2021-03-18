@@ -336,6 +336,8 @@ void compute_completions_credulous_wrapper(ter::IAF &iaf, ter::Result &result, s
 
 int main(const int argc, const char *argv[])
 {
+    try
+    {
     semantics sem = ST;
     task tsk = DC;
     ter::IAF iaf;
@@ -425,5 +427,11 @@ int main(const int argc, const char *argv[])
         cout << result.to_string();
     else
         cout << to_string(*result.scores); 
-    return 0;
+    return 0;   
+    }
+    catch (const std::bad_alloc&&)
+    {
+        cout << "memory out" << std::endl;
+    }
+
 }
