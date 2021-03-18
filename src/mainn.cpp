@@ -121,6 +121,7 @@ void compute_completions_skeptical(ter::IAF &iaf, ter::Result &result, semantics
         for (int j = 0; j < valid_args.size(); j++)
             if (valid_args[j])
                 cargs.push_back(iaf.get_iarg(j));
+        valid_args.clear();
 
         for (long l = 0; l < n_poss_attacks; l++)
         {
@@ -134,6 +135,7 @@ void compute_completions_skeptical(ter::IAF &iaf, ter::Result &result, semantics
                         goto END_FOR_SKEPTICAL;
                     cattacks.push_back(atk);
                 }
+            valid_attacks.clear();
 
             af = AF(cargs, cattacks);
             for(string arg : cargs) scores_2[arg]++;
@@ -174,10 +176,12 @@ void compute_completions_skeptical(ter::IAF &iaf, ter::Result &result, semantics
                 if (accepted)
                     (*scores)[arg] += 1;
             }
+            cattacks.delete();
             extentions->clear();
             delete extentions;
             END_FOR_SKEPTICAL:;
         }
+        cargs.delete();
     }
     for(const auto pair : scores_2) {
         if(grad_meth == 1)
@@ -212,6 +216,7 @@ void compute_completions_credulous(ter::IAF &iaf, ter::Result &result, semantics
         for (int j = 0; j < valid_args.size(); j++)
             if (valid_args[j])
                 cargs.push_back(iaf.get_iarg(j));
+        valid_args.clear();
 
         for (long l = 0; l < n_poss_attacks; l++)
         {
@@ -225,6 +230,7 @@ void compute_completions_credulous(ter::IAF &iaf, ter::Result &result, semantics
                         goto END_FOR_CREDULOUS;
                     cattacks.push_back(atk);
                 }
+            valid_attacks.clear();
 
             af = AF(cargs, cattacks);
             for(string arg : cargs) scores_2[arg]++;
@@ -260,10 +266,12 @@ void compute_completions_credulous(ter::IAF &iaf, ter::Result &result, semantics
                         break;
                     }
             }
+            cattacks.delete();
             extentions->clear();
             delete extentions;
             END_FOR_CREDULOUS:;
         }
+        cargs.delete();
     }
     for(const auto pair : scores_2) {
         //cout << pair.first << " " << pair.second << " " << (*scores)[pair.first] << endl;
