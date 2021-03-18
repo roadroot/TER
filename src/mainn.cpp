@@ -338,96 +338,96 @@ int main(const int argc, const char *argv[])
 {
     try
     {
-    semantics sem = ST;
-    task tsk = DC;
-    ter::IAF iaf;
-    int grad = 1;
-    bool testing = false;
-    auto timeout = 3600s;
+        semantics sem = ST;
+        task tsk = DC;
+        ter::IAF iaf;
+        int grad = 1;
+        bool testing = false;
+        auto timeout = 3600s;
 #if DEBUG_ENABLED
-    ifstream input;
-    if (argc == 1)
-        input.open("Test20.tgf");
-    else
-        input.open(argv[1]);
+        ifstream input;
+        if (argc == 1)
+            input.open("Test20.tgf");
+        else
+            input.open(argv[1]);
 
-    iaf.parse_from_tgf(input);
-    input.close();
-#else
-    if (!(argc == 6 || argc == 7 && is_number(argv[6])))
-    {
-        cout << "Usage: " << argv[0] << " <file> <format> <SM> <task> <GS>" << endl
-             << "<file>:\t\tFile containing the AF" << endl
-             << "<format>:\tFile format, one of {tgf, apx}" << endl
-             << "<SM>:\t\t\tSemantics used one of {CO, PR, ST, GR}" << endl
-             << "<task>:\t\t\tCredulous or skeptical acceptancy, one of {DC, DS}" << endl
-             << "<GS>:\t\t\tGraduation system, 1 or 2" << endl;
-        return 0;
-    }
-
-    if(argc == 7) {
-        testing = true;
-        timeout = std::chrono::seconds(stoi(argv[6]));
-    }
-
-    // read the file and check its readability
-    ifstream input = ifstream(argv[1]);
-    if (!input.good())
-    {
-        cout << "An error occured while openning \"" << argv[1] << "\"" << endl;
-        return -1;
-    }
-
-
-    // parse the file according to its format
-    if (string(argv[2]) == "tgf")
         iaf.parse_from_tgf(input);
-    else if (string(argv[2]) == "apx")
-        iaf.parse_from_apx(input);
-    else
-    {
-        cout << "Unsupported file format \"" << argv[2] << "\"" << endl;
-        return -1;
-    }
-    input.close();
+        input.close();
+#else
+        if (!(argc == 6 || argc == 7 && is_number(argv[6])))
+        {
+            cout << "Usage: " << argv[0] << " <file> <format> <SM> <task> <GS>" << endl
+                << "<file>:\t\tFile containing the AF" << endl
+                << "<format>:\tFile format, one of {tgf, apx}" << endl
+                << "<SM>:\t\t\tSemantics used one of {CO, PR, ST, GR}" << endl
+                << "<task>:\t\t\tCredulous or skeptical acceptancy, one of {DC, DS}" << endl
+                << "<GS>:\t\t\tGraduation system, 1 or 2" << endl;
+            return 0;
+        }
 
-    // parse the semantics
-    sem = string_to_sem(argv[3]);
-    if (sem == UNKNOWN_SEM)
-    {
-        cout << "Unknown semantics \"" << argv[3] << "\"" << endl;
-        return -1;
-    }
+        if(argc == 7) {
+            testing = true;
+            timeout = std::chrono::seconds(stoi(argv[6]));
+        }
 
-    // parse the task
-    tsk = string_to_task(argv[4]);
-    if (tsk == UNKNOWN_TASK)
-    {
-        cout << "Unknown task \"" << argv[4] << "\"" << endl;
-        return -1;
-    }
+        // read the file and check its readability
+        ifstream input = ifstream(argv[1]);
+        if (!input.good())
+        {
+            cout << "An error occured while openning \"" << argv[1] << "\"" << endl;
+            return -1;
+        }
 
-    grad = string(argv[5]) == "1" ? 1 : string(argv[5]) == "2" ? 2
-                                                               : 0;
-    if (!grad)
-    {
-        cout << "Unknown graduation method \"" << argv[5] << "\"" << endl;
-        return -1;
-    }
+
+        // parse the file according to its format
+        if (string(argv[2]) == "tgf")
+            iaf.parse_from_tgf(input);
+        else if (string(argv[2]) == "apx")
+            iaf.parse_from_apx(input);
+        else
+        {
+            cout << "Unsupported file format \"" << argv[2] << "\"" << endl;
+            return -1;
+        }
+        input.close();
+
+        // parse the semantics
+        sem = string_to_sem(argv[3]);
+        if (sem == UNKNOWN_SEM)
+        {
+            cout << "Unknown semantics \"" << argv[3] << "\"" << endl;
+            return -1;
+        }
+
+        // parse the task
+        tsk = string_to_task(argv[4]);
+        if (tsk == UNKNOWN_TASK)
+        {
+            cout << "Unknown task \"" << argv[4] << "\"" << endl;
+            return -1;
+        }
+
+        grad = string(argv[5]) == "1" ? 1 : string(argv[5]) == "2" ? 2
+                                                                : 0;
+        if (!grad)
+        {
+            cout << "Unknown graduation method \"" << argv[5] << "\"" << endl;
+            return -1;
+        }
 
 #endif
-    ter::Result result = ter::Result(tsk, NULL, 0, grad);
-    auto start = chrono::high_resolution_clock::now();
-    if (tsk == DC)
-        compute_completions_credulous_wrapper(iaf, result, sem, grad, timeout);
-    else
-        compute_completions_skeptical_wrapper(iaf, result, sem, grad, timeout);
-    result.time = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - start).count();
-    if(testing)
-        cout << result.to_string();
-    else
-        cout << to_string(*result.scores); 
-    return 0;   
+        ter::Result result = ter::Result(tsk, NULL, 0, grad);
+        auto start = chrono::high_resolution_clock::now();
+        if (tsk == DC)
+            compute_completions_credulous_wrapper(iaf, result, sem, grad, timeout);
+        else
+            compute_completions_skeptical_wrapper(iaf, result, sem, grad, timeout);
+        result.time = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - start).count();
+        if(testing)
+            cout << result.to_string();
+        else
+            cout << to_string(*result.scores); 
+        return 0;   
     }
     catch (const std::bad_alloc&&)
     {
