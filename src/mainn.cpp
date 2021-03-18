@@ -143,12 +143,7 @@ void compute_completions_skeptical(ter::IAF &iaf, ter::Result &result, semantics
             switch (sem)
             {
             case ST:
-                //for(string s:af.int_to_arg){
-                  //  cout << "ici: " << s << endl;
-                //}
                 extentions = EnumerateExtensions::stable(af);
-                //cout << "extention: " << endl;
-                //cout << to_string(*extentions) << endl;
                 break;
 
             case CO:
@@ -156,18 +151,11 @@ void compute_completions_skeptical(ter::IAF &iaf, ter::Result &result, semantics
                 break;
 
             case PR:
-               //for(string s:af.int_to_arg){
-                 //   cout << "ici: " << s << endl;
-                //}
                 extentions = EnumerateExtensions::preferred(af);
-                //cout << "extention: " << endl;
-                //cout << to_string(*extentions) << endl;
                 break;
 
             case GR:
                 extentions = SingleExtension::grounded(af,0);
-                //cout << "Unsupported problem" << endl;
-                //exit(-1);
                 break;
 
             default:
@@ -186,11 +174,11 @@ void compute_completions_skeptical(ter::IAF &iaf, ter::Result &result, semantics
                 if (accepted)
                     (*scores)[arg] += 1;
             }
+            delete extentions;
             END_FOR_SKEPTICAL:;
         }
     }
     for(const auto pair : scores_2) {
-        //cout << pair.first << " " << pair.second << " " << (*scores)[pair.first] << endl;
         if(grad_meth == 1)
             (*scores)[pair.first] /= num_comp;
         else
@@ -245,12 +233,7 @@ void compute_completions_credulous(ter::IAF &iaf, ter::Result &result, semantics
             switch (sem)
             {
             case ST:
-                //for(string s:af.int_to_arg){
-                  //  cout << "ici: " << s << endl;
-                //}
                 extentions = EnumerateExtensions::stable(af);
-                //cout << "extention: " << endl;
-                //cout << to_string(*extentions) << endl;
                 break;
 
             case CO:
@@ -276,6 +259,7 @@ void compute_completions_credulous(ter::IAF &iaf, ter::Result &result, semantics
                         break;
                     }
             }
+            delete extentions;
             END_FOR_CREDULOUS:;
         }
     }
@@ -433,5 +417,7 @@ int main(const int argc, const char *argv[])
     {
         cout << "memory out" << std::endl;
     }
-
+    catch (...) {
+        std::cout << "memory out" << std::endl;
+    }
 }
