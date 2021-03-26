@@ -168,16 +168,16 @@ void print_single_extension(const AF & af, const std::vector<uint32_t> & extensi
 
 vector<std::string> get_single_extension(const AF & af, const std::vector<uint32_t> & extension, bool tab)
 {
-	vector<std::string> *result = new vector<std::string>();
+	vector<std::string> result = vector<std::string>();
 	//if (tab) cout << "\t";
 	//cout << "[";
 	for (uint32_t i = 0; i < extension.size(); i++) {
 		//cout << af.int_to_arg[extension[i]];
-		result->push_back(af.int_to_arg[extension[i]]);
+		result.push_back(af.int_to_arg[extension[i]]);
 	//	if (i != extension.size()-1) cout << ",";
 	}
 	//cout << "]" << endl;
-	return *result;
+	return result;
 }
 
 void print_extensions(const AF & af, const std::vector<std::vector<uint32_t>> & extensions)

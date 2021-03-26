@@ -11,16 +11,16 @@ namespace ter
 
     public:
         task tsk;
-        map<string, float> *scores;
         long completion_number;
         int grad_meth;
         long time;
+        map<string, float> scores = map<string, float>();
+
 
         Result();
 
         Result(
-            task tsk = DC,
-            map<string, float> *scores = NULL,
+            task tsk,
             long completion_number = 0,
             int grad_mseth = 1
         );
@@ -36,12 +36,10 @@ namespace ter
     
     Result::Result(
         task tsk,
-        map<string, float> *scores,
         long completion_number,
         int grad_meth
     ) :
         tsk(tsk),
-        scores(scores),
         completion_number(completion_number),
         grad_meth(grad_meth)
     {

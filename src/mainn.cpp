@@ -89,27 +89,26 @@ string to_string(map<string, float> &scores)
 }
 
 // long to vector of bytes (for the completion generation (look at compute_completions_*))
-vector<bool> &encode(long value)
+vector<bool> encode(long value)
 {
-    vector<bool> *boolvalue = new vector<bool>();
+    vector<bool> boolvalue = vector<bool>();
     do
-        boolvalue->insert(boolvalue->begin(), value % 2);
+        boolvalue.insert(boolvalue.begin(), value % 2);
     while (value /= 2);
-    return *boolvalue;
+    return boolvalue;
 }
 
 // calculate the completions, their extention and arguments score with skept acceptance
 void compute_completions_skeptical(ter::IAF &iaf, ter::Result &result, semantics sem = ST, int grad_meth = 1)
 {
-    map<string, float> *scores = new map<string, float>();
     map<string, float> scores_2 = map<string, float>();
     long num_comp = 0;
     for (string arg : iaf.args_) {
-        (*scores)[arg] = 0;
+        result.scores [arg] = 0;
         scores_2[arg] = 0;
     }
     for (string arg : iaf.iargs_) {
-        (*scores)[arg] = 0;
+        result.scores[arg] = 0;
         scores_2[arg] = 0;
     }
     long n_poss_arg = pow(2, iaf.iargs_.size());
@@ -174,7 +173,7 @@ void compute_completions_skeptical(ter::IAF &iaf, ter::Result &result, semantics
                         break;
                     }
                 if (accepted)
-                    (*scores)[arg] += 1;
+                    result.scores[arg] += 1;
             }
             cattacks.clear();
             for(std::vector<std::string> ext : *extentions)
@@ -187,26 +186,24 @@ void compute_completions_skeptical(ter::IAF &iaf, ter::Result &result, semantics
     }
     for(const auto pair : scores_2) {
         if(grad_meth == 1)
-            (*scores)[pair.first] /= num_comp;
+            result.scores[pair.first] /= num_comp;
         else
-            (*scores)[pair.first] /= pair.second;
+            result.scores[pair.first] /= pair.second;
     }
-    result.scores = scores;
     result.completion_number = num_comp;
 }
 
 // calculate the completions, their extention and arguments score with cred acceptance
 void compute_completions_credulous(ter::IAF &iaf, ter::Result &result, semantics sem = ST, int grad_meth = 1)
 {
-    map<string, float> *scores = new map<string, float>();
     map<string, float> scores_2 = map<string, float>();
     double num_comp = 0;
     for (string arg : iaf.args_) {
-        (*scores)[arg] = 0;
+        result.scores[arg] = 0;
         scores_2[arg] = 0;
     }
     for (string arg : iaf.iargs_) {
-        (*scores)[arg] = 0;
+        result.scores[arg] = 0;
         scores_2[arg] = 0;
     }
     long n_poss_arg = pow(2, iaf.get_iargs().size());
@@ -264,7 +261,7 @@ void compute_completions_credulous(ter::IAF &iaf, ter::Result &result, semantics
             {
                 for (std::vector<std::string> ext : *extentions)
                     if (exists(ext, arg)) {
-                        (*scores)[arg] += 1;
+                        result.scores[arg] += 1;
                         break;
                     }
             }
@@ -278,17 +275,16 @@ void compute_completions_credulous(ter::IAF &iaf, ter::Result &result, semantics
         cargs.clear();
     }
     for(const auto pair : scores_2) {
-        //cout << pair.first << " " << pair.second << " " << (*scores)[pair.first] << endl;
+        //cout << pair.first << " " << pair.second << " " << scores[pair.first] << endl;
         if(grad_meth == 1)
-            (*scores)[pair.first] /= num_comp;
+            result.scores[pair.first] /= num_comp;
         else
-            (*scores)[pair.first] /= pair.second;
+            result.scores[pair.first] /= pair.second;
     }
-    result.scores = scores;
     result.completion_number = num_comp;
 }
 
-void compute_completions_skeptical_wrapper(ter::IAF &iaf, ter::Result &result, semantics sem = ST, int grad_meth = 1, auto timeout=10s)
+void compute_completions_skeptical_wrapper(ter::IAF &iaf, ter::Result &result, semantics sem = ST, int grad_meth = 1, std::chrono::seconds timeout=10s)
 {
     std::mutex m;
     std::condition_variable cv;
@@ -310,7 +306,7 @@ void compute_completions_skeptical_wrapper(ter::IAF &iaf, ter::Result &result, s
     }
 }
 
-void compute_completions_credulous_wrapper(ter::IAF &iaf, ter::Result &result, semantics sem = ST, int grad_meth = 1, auto timeout=10s)
+void compute_completions_credulous_wrapper(ter::IAF &iaf, ter::Result &result, semantics sem = ST, int grad_meth = 1, std::chrono::seconds timeout=10s)
 {
     std::mutex m;
     std::condition_variable cv;
@@ -414,7 +410,7 @@ int main(const int argc, const char *argv[])
         }
 
 #endif
-        ter::Result result = ter::Result(tsk, NULL, 0, grad);
+        ter::Result result = ter::Result(tsk, 0, grad);
         auto start = chrono::high_resolution_clock::now();
         if (tsk == DC)
             compute_completions_credulous_wrapper(iaf, result, sem, grad, timeout);
@@ -424,7 +420,7 @@ int main(const int argc, const char *argv[])
         if(testing)
             cout << result.to_string();
         else
-            cout << to_string(*result.scores); 
+            cout << to_string(result.scores); 
         return 0;   
     }
     catch (const std::bad_alloc& ex)
